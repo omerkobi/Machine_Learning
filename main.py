@@ -269,8 +269,8 @@ def train_and_evaluate(df, target_column, model_type="tree", model_kwargs=None):
     train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
     test_rmse = np.sqrt(mean_squared_error(y_test, y_test_pred))
 
-    print(f"Train RMSE: {train_rmse}")
-    print(f"Test RMSE: {test_rmse}")
+    #print(f"Train RMSE: {train_rmse}")
+    #print(f"Test RMSE: {test_rmse}")
 
     # Recommendations for improvement:
     # 1. Instead of extreme cleaning, handle missing values with imputation (e.g., mean, median, or mode).
@@ -347,13 +347,13 @@ df = sns.load_dataset('diamonds')
 #results = train_and_evaluate(df, 'price', model_kwargs={'min_samples_leaf': 16})
 #print(plot_regression_results(results))
 
-print(sns.get_dataset_names())
+#print(sns.get_dataset_names())
 
 df2 = sns.load_dataset('mpg')
 #lets do acceleration as y varible
 pd.set_option('display.max_columns', None)
-print(len(df2))
-print(df2.tail())
+#print(len(df2))
+#print(df2.tail())
 
 result = train_and_evaluate(df2,'acceleration',model_kwargs={'min_samples_leaf': 16})
 # display graphs for the regression
@@ -502,14 +502,14 @@ we wont split the trees randomly - we will give each model diffrent data sets to
 import time
 start_time = time.time() # the start time for the execution
 # try diffrent values for max_features
-test_random = RandomForestRegressor(n_estimators=100,max_features= 10,min_samples_leaf=2, min_samples_split=2)
-test_random.fit(X_train,y_train)
+#test_random = RandomForestRegressor(n_estimators=100,max_features= 10,min_samples_leaf=2, min_samples_split=2)
+#test_random.fit(X_train,y_train)
 
-test_rand_pred = test_random.predict(X_train)
-test_rand_test = test_random.predict(X_test)
+#test_rand_pred = test_random.predict(X_train)
+#test_rand_test = test_random.predict(X_test)
 
-train_rmse = mean_squared_error(y_train,test_rand_pred) ** 0.5
-test_rmse = mean_squared_error(y_test,test_rand_test) ** 0.5
+#train_rmse = mean_squared_error(y_train,test_rand_pred) ** 0.5
+#test_rmse = mean_squared_error(y_test,test_rand_test) ** 0.5
 
 end_time = time.time() # the end time for the execution
 
@@ -517,15 +517,21 @@ end_time = time.time() # the end time for the execution
 
 ##### Dealing with catagorical data  : ##########
 df_ =sns.load_dataset('titanic')
+print("first")
+print(df_.head())
 X = df_.drop(columns='fare')
 y = df_['fare']
+with_dummy = pd.get_dummies(df_)
 pd.get_dummies(X[['class']])  # dummy columns, one-hot encoding
 ############
-pd.get_dummies(X)  # for each string column, create column for each value
+pd.get_dummies(X)  # for each string column, create column for each value - can creat a lot of dummies
+print("this is df :")
+print(with_dummy.head())
 ############
 # dir(X['class'].cat)
 #['class'].cat.categories
-X['class_cat'] = X['class'].cat.codes
+X['class_cat'] = X['class'].cat.codes # creats 0,1,2, ctegories for categorical value
+print("this is X")
 print(X.head())
 # converting catagorical string into a category
 def encode_all_categories(df):
@@ -536,11 +542,45 @@ def encode_all_categories(df):
     return df
 
 # using my knowledge of this particular dataset, I encode string columns
-# that
+# here we have a list of object type collumns - we are changing there type to categorical.
 for col in ['class', 'sex', 'embarked', 'embark_town', 'alive', 'who']:
     X[col] = X[col].astype('category')
 encode_all_categories(X)
 
+################################################################
+############################  AT HOME ############################
+
+ping = sns.load_dataset('penguins')
+print(ping.dtypes)
+#ping = ping.drop('sex',axis= 1) -  we tried once without the sex col and once with
+ping = ping.dropna()
+print(ping.head())
+
+#for ty in ping.dtypes:
+#    print(ty)
+for col in ['species','island','sex']: #convertin object type to categorical and creating dummies
+    ping[col]= ping[col].astype('category')
+    ping[col] = ping[col].cat.codes
+#ping['species'] = ping['species'].astype('category')
+
+X = ping.drop(['body_mass_g','species','island','sex'], axis=1)
+Y = ping['body_mass_g']
+print(X.head())
+X_trains, X_tests, Y_train, Y_test = train_test_split(X,Y,test_size= 0.2, random_state= 42)
+model_train = RandomForestRegressor(max_features= 10,min_samples_leaf=2, min_samples_split=2)
+model_train.fit(X_trains,Y_train)
+train_predict = model_train.predict(X_trains)
+test_predict = model_train.predict(X_tests)
+print(Y_test.iloc[1])
+print("and the predict : ")
+print(test_predict[1])
+
+Train_rmse = mean_squared_error(Y_train,train_predict) **0.5
+Test_rmse = mean_squared_error(Y_test,test_predict) **0.5
+
+print(f'traine RMSE : {Train_rmse}  test RMSE : {Test_rmse} ' )
+
+#################################################################### Lesson 3 ####################################################################
 
 
 
